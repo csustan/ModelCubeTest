@@ -77,6 +77,9 @@
 			// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 		})
 
+		//var light = new THREE.light(0xffffff, 0.5);
+		//scene.add(light);
+
 		arToolkitSource.init(function onReady() {
 			//initARContext()
 			//onResize()
@@ -303,17 +306,79 @@
 		// 	cubeMesh.rotation.z += 0.001
 		// })
 
-        var threeGLTFLoader = new THREE.GLTFLoader();
-        var model;
+        //var threeGLTFLoader = new THREE.GLTFLoader();
+        //var model;
+		//
+		//threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", function (gltf) {
+        //    //model = gltf.scene.children[0];
+        //    model = gltf.scenes[0];
+        //    model.name = 'CarbonCube';
+		//
+        //    arWorldRoot.add(model);
+		//
+        //});
+
+		//// Model Loader
+		//const threeGLTFLoader = new THREE.GLTFLoader()
+		//threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", function(data){
+  		//		const object = data.scene;
+		//		const objectMaterial = data.scenes[0].materials;
+		//		const newObjectMaterial = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load(objectMaterial),  transparent: true, opacity: 0.8, side: THREE.DoubleSide });
+  		//		object.position.set(0, 0, 0);
+  		//		arWorldRoot.add(object);
+		//});
+
+		//// Model Loader
+		//const threeGLTFLoader = new THREE.GLTFLoader()
+		//threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", function(data){
+  		//		const object = data.scene;
+		//		const objectMaterial = data.scenes[0].materials;
+  		//		object.position.set(0, 0, 0);
+  		//		arWorldRoot.add(object);
+		//});
+
+		//// Model Loader
+		//const threeGLTFLoader = new THREE.GLTFLoader()
+		//threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", callbackFunction);
+		//function callbackFunction(data){
+  		//		const object = data.scene;
+		//		const objectMaterial = data.scenes[0].materials;
+  		//		object.position.set(0, 0, 0);
+  		//		arWorldRoot.add(object);
+		//};
 
 
-		threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", function (gltf) {
-            model = gltf.scene.children[0];
-            model.name = 'Flamingo';
+		/*
+		// Model Loader
+		const threeGLTFLoader = new THREE.GLTFLoader()
+		threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", renderCallbackFunction);
+		function renderCallbackFunction(data){
+  				const object = data.scene;
+				const objectMaterial = data.scenes[0].materials;
+				var material = new THREE.MeshNormalMaterial({
+					color: 0xFF0000
+					
+					//morphTargets: true
+				});
+  				object.position.set(0, 0, 0);
+  				arWorldRoot.add(object, material);
+		};
+		*/
 
-            arWorldRoot.add(model);
+		//Object
+		const threeGLTFLoader = new THREE.GLTFLoader();
+		var userModel;
+		threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", function (gltf){
+			userModel = gltf.scene;
+			arWorldRoot.add(gltf.scene);
+		});
 
-        });
+		//Lights
+		var ambientLight = new THREE.AmbientLight(0xffffff, .5);
+		arWorldRoot.add(ambientLight);
+		var hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x000000, 10);
+		arWorldRoot.add(hemisphereLight);
+
 		//////////////////////////////////////////////////////////////////////////////////
 		//		render the whole thing on the page
 		//////////////////////////////////////////////////////////////////////////////////
