@@ -6,6 +6,8 @@
 <!-- three.js library -->
 <script src='js/three.js'></script>
 <!--Additional Libraries-->
+<!-- three.js load GLTF -->
+<script src='js/GLTFLoader.js'></script>
 <!-- States frame rate monitor -->
 <!-- <script src="js/stats.min.js"></script> --> 
 <!-- ar.js -->
@@ -74,6 +76,9 @@
 			// sourceType : 'video',
 			// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 		})
+
+		//var light = new THREE.light(0xffffff, 0.5);
+		//scene.add(light);
 
 		arToolkitSource.init(function onReady() {
 			//initARContext()
@@ -238,7 +243,7 @@
 		scene.add(smoothedRoot)
 		var smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
 			
-			lerpPosition: 0.8,
+			lerpPosition: 0.8,//0.8,
 			lerpQuaternion: 0.05,  //jiggle control
 			lerpScale: 1,
 			
@@ -287,19 +292,95 @@
 			opacity: 0.5,
 			side: THREE.DoubleSide
 		});
-		//var mesh = new THREE.Mesh(geometry, material);
-		//mesh.position.y = geometry.parameters.height / 2
-		var cubeMesh = new THREE.Mesh(geometry, imageMaterial2);
-		//var cubeMesh = new THREE.Mesh(geometry, imageMaterial);
-		//cubeMesh.position.y = geometry.parameters.height / 2
+
 		
-		cubeMesh.position.set( 0, -8, -6.5); // The cube is about 16 units, and needs to have the A-frame about in the bottom middle 
-											 //the A-frame with the printed marker is about three feet off the ground.
-		//scene.add(cubeMesh);
-		arWorldRoot.add(cubeMesh);
-		onRenderFcts.push(function () {
-			cubeMesh.rotation.z += 0.001
-		})
+		var cubeMesh = new THREE.Mesh(geometry, imageMaterial2);
+
+		
+		/*
+		var loader = new THREE.GLTFLoader().setPath( './resources/' );
+		loader.load( '16_Metric_Ton_CO2.glb', function ( gltf ) {
+			gltf.scene.traverse( function ( child ) {
+
+			if ( child.isMesh ) {
+			
+				THREE.roughnessMipmapper.generateMipmaps( child.material );
+			
+			}
+			
+			} );
+			
+			scene.add( gltf.scene );
+			
+			roughnessMipmapper.dispose();
+			
+			render();
+
+
+		});
+		*/
+
+
+		/*
+		// Model Loader
+		const threeGLTFLoader = new THREE.GLTFLoader()
+		threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", renderCallbackFunction);
+		function renderCallbackFunction(data){
+  				const object = data.scene;
+				const objectMaterial = data.scenes[0].materials;
+				var material = new THREE.MeshNormalMaterial({
+					color: 0xFF0000
+					
+					//morphTargets: true
+				});
+  				object.position.set(0, 0, 0);
+  				arWorldRoot.add(object, material);
+		};
+		*/
+
+		//Object
+		
+		const threeGLTFLoader = new THREE.GLTFLoader();
+		var userModel;
+		threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", function (gltf){
+			userModel = gltf.scene;
+			//userModel = gltf.scene.children[0];
+			//Scale the model up by 20%
+			userModel.scale.x = 1.2;
+			userModel.scale.y = 1.2;
+			userModel.scale.z = 1.2;
+
+			////Safely load material
+
+			////( if userModel = gltf.scene;
+			//// use var objectMaterial = gltf.scenes[0].materials;
+			////Otherwise use var objectMaterial = gltf.materials;)
+
+			//var objectMaterial = gltf.materials;
+			//userModel.traverse(function(node) {
+			//	if (node instanceof THREE.Mesh) {
+			//		node.material.map = objectMaterial;
+			//	}
+			//});
+
+			//Set the transparency
+			
+			userModel.children[0].material.transparent = true;
+			userModel.children[0].material.opacity = 0.9;
+
+			////Set the initial position
+			//userModel.position.set(0, 0, 0);
+
+			arWorldRoot.add(userModel);
+
+			render();
+		});
+		
+		//Lights
+		var ambientLight = new THREE.AmbientLight(0xffffff, .5);
+		arWorldRoot.add(ambientLight);
+		var hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x000000, 10);
+		arWorldRoot.add(hemisphereLight);
 
 		//////////////////////////////////////////////////////////////////////////////////
 		//		render the whole thing on the page
@@ -326,6 +407,7 @@
 			// call each update function
 			onRenderFcts.forEach(function (onRenderFct) {
 				onRenderFct(deltaMsec / 1000, nowMsec / 1000)
+				//userModel.rotation.z += 0.001;
 			})
 		})
 	</script>

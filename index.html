@@ -234,16 +234,16 @@
 		//          Create a ArMarkerControls
 		////////////////////////////////////////////////////////////////////////////////
 
-		var markerRoot = new THREE.Group
+		var markerRoot = new THREE.Group();
 		scene.add(markerRoot)
 
 
 		// build a smoothedControls
-		var smoothedRoot = new THREE.Group()
-		scene.add(smoothedRoot)
+		var smoothedRoot = new THREE.Group();
+		scene.add(smoothedRoot);
 		var smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
 			
-			lerpPosition: 0.8,
+			lerpPosition: 0.8,//0.8,
 			lerpQuaternion: 0.05,  //jiggle control
 			lerpScale: 1,
 			
@@ -259,21 +259,12 @@
 		//////////////////////////////////////////////////////////////////////////////////
 		//		add an object in the scene
 		//////////////////////////////////////////////////////////////////////////////////
-
-
-		//const loader = new THREE.CubeTextureLoader();
-		//loader.setPath( 'img/numbers/' );
-		//const textureCube = loader.load( [
-		//								'1_350px-350px.png', '2_350px-350px.png',
-		//								'3_350px-350px.png', '4_350px-350px.png',
-		//								'5_350px-350px.png', '6_350px-350px.png'
-		//								] 
-		//);
-        //const imageMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube, transparent: true, opacity: .5, side: THREE.DoubleSide } );
-
-		// //const imageMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
 		
+		//Prepare the group to load in objects
 		var arWorldRoot = smoothedRoot;
+		/*
+		////This is for testing if the system is tracking the marker correctly.
+		
 		const textureOpacity = 0.75;
 		var cubeMaterial = [
 							new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/CarbonTexture_01.png'), transparent: true, opacity: textureOpacity, side: THREE.DoubleSide }), //RIGHT SIDE 
@@ -286,7 +277,8 @@
 
     	var imageMaterial2 = new THREE.MeshFaceMaterial( cubeMaterial );
 
-		var geometry = new THREE.BoxGeometry(16.875, 16.875, 16.875);
+		//var geometry = new THREE.BoxGeometry(16.875, 16.875, 16.875);
+		var geometry = new THREE.BoxGeometry(1, 1, 1);
 		var material = new THREE.MeshNormalMaterial({
 			transparent: true,
 			opacity: 0.5,
@@ -295,60 +287,45 @@
 
 		
 		var cubeMesh = new THREE.Mesh(geometry, imageMaterial2);
-
+		cubeMesh.geometry.center();
+		////scene.add(cubeMesh);
+		//arWorldRoot.add(cubeMesh);
+		/**/
 		
-		/*
-		var loader = new THREE.GLTFLoader().setPath( './resources/' );
-		loader.load( '16_Metric_Ton_CO2.glb', function ( gltf ) {
-			gltf.scene.traverse( function ( child ) {
-
-			if ( child.isMesh ) {
-			
-				THREE.roughnessMipmapper.generateMipmaps( child.material );
-			
-			}
-			
-			} );
-			
-			scene.add( gltf.scene );
-			
-			roughnessMipmapper.dispose();
-			
-			render();
-
-
-		});
-		*/
-
-
-		/*
-		// Model Loader
-		const threeGLTFLoader = new THREE.GLTFLoader()
-		threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", renderCallbackFunction);
-		function renderCallbackFunction(data){
-  				const object = data.scene;
-				const objectMaterial = data.scenes[0].materials;
-				var material = new THREE.MeshNormalMaterial({
-					color: 0xFF0000
-					
-					//morphTargets: true
-				});
-  				object.position.set(0, 0, 0);
-  				arWorldRoot.add(object, material);
-		};
-		*/
 
 		//Object
 		
 		const threeGLTFLoader = new THREE.GLTFLoader();
-		var userModel;
-		threeGLTFLoader.load("./resources/16_Metric_Ton_CO2.glb", function (gltf){
+		var loadedModels = {};
+		//var userModel;
+
+		var setModel = function(modelName, passedModel){
+			loadedModels[modelName] = passedModel;
+		};
+		var getModel = function(modelName){
+			return loadedModels[modelName];
+		};
+
+
+		threeGLTFLoader.load("./resources/testCube2.glb", function (gltf){
 			//userModel = gltf.scene;
-			userModel = gltf.scene.children[0];
+			//userModel = gltf.scene.children[0];
+			//setModel("userModel", gltf.scene);
+			setModel("userModel", gltf.scene.children[0]);
+
+			////sometimes a loaded blender/.gltf model will have an offcenter pivot point
+			////due to more than one mesh being loaded, a parent mesh existing, etc.
+			////The reference returned from GLTFLoader is a wrapper around the entire export,
+			////(a.k.a. gltf.scene), which inturn is centered at 0,0,0. this means that the
+			////internal structure could be a mismatch. using mesh.geometry.center()
+			////should correct this. See https://discourse.threejs.org/t/set-pivot-point-to-center-of-object-imported-from-blender/14104/2
+			////for details.
+			getModel("userModel").geometry.center(); 
+
 			//Scale the model up by 10%
-			userModel.scale.x = 1.1;
-			userModel.scale.y = 1.1;
-			userModel.scale.z = 1.1;
+			getModel("userModel").scale.x = 1.1;
+			getModel("userModel").scale.y = 1.1;
+			getModel("userModel").scale.z = 1.1;
 
 			////Safely load material
 
@@ -365,13 +342,16 @@
 
 			//Set the transparency
 			
-			userModel.material.transparent = true;
-			userModel.material.opacity = 0.9;
+			//getModel("userModel").children[0].material.transparent = true;
+			//getModel("userModel").children[0].material.opacity = 0.9;
+
+			getModel("userModel").material.transparent = true;
+			getModel("userModel").material.opacity = 0.9;
 
 			////Set the initial position
 			//userModel.position.set(0, 0, 0);
 
-			arWorldRoot.add(userModel);
+			arWorldRoot.add(getModel("userModel"));
 
 			render();
 		});
@@ -391,11 +371,12 @@
 		// render the scene
 		onRenderFcts.push(function () {
 			renderer.render(scene, camera);
+
 			//stats.update(); //Test Code
 		})
 
-		console.dir(onRenderFcts);		//test code
-		// run the rendering loop
+		//console.dir(onRenderFcts);		//test code
+		//// run the rendering loop
 		var lastTimeMsec = null
 		requestAnimationFrame(function animate(nowMsec) {
 			// keep looping
@@ -407,6 +388,7 @@
 			// call each update function
 			onRenderFcts.forEach(function (onRenderFct) {
 				onRenderFct(deltaMsec / 1000, nowMsec / 1000)
+				//getModel("userModel").rotation.y += 0.001; //rotation animation
 			})
 		})
 	</script>
